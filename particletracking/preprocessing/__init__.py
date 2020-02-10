@@ -21,6 +21,8 @@ class PreProcessor:
         if self.calls == 0:
             self.crop, self.mask_im, self.boundary = getattr(
                 crops, self.crop_method)(frame, self.parameters)
+            self.parameters['crop'] = self.crop
+            self.parameters['mask image'] = self.mask_im
             
         if 'crop_and_mask' not in self.parameters["method"]:
             cropped_frame = frame.copy()

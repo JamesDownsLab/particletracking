@@ -107,3 +107,8 @@ class ExampleManager:
     def extra_steps(self):
         pass
 
+
+if __name__ == "__main__":
+    file = "/home/ppxjd3/Videos/short.MP4"
+    tracker = ParticleTracker(file, ExampleManager())
+    tracker.track()

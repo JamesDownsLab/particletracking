@@ -4,7 +4,7 @@ import cv2
 
 
 def manual(frame, parameters):
-    no_of_sides = parameters['No of sides']
+    no_of_sides = parameters['no_of_sides']
     if no_of_sides == 1:
         crop_result = images.crop_circle(frame)
     else:
