@@ -40,7 +40,7 @@ class ParticleTracker:
         data_name = (str(group_number) + '.hdf5'
                      if self.multiprocess else self.dataname)
         with dataframes.DataStore(data_name, load=False) as data:
-            data.add_metadata('number of frames', self.num_frames)
+            data.add_metadata('num_frames', self.num_frames)
             data.add_metadata('video_filename', self.vidname)
             data.add_metadata('crop', self.manager.preprocessor.crop)
             start = self.frame_div * group_number
