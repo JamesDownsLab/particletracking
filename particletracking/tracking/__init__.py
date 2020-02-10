@@ -24,7 +24,7 @@ class ParticleTracker:
             self._track_multiprocess()
         else:
             self._track_process(0)
-        self.manager.extra_steps()
+        self.manager.extra_steps(self.filename)
 
     def _get_video_info(self):
         vid = video.ReadVideo(self.vidname)
@@ -104,7 +104,7 @@ class ExampleManager:
         info_headings = ['x', 'y', 'r']
         return info, boundary, info_headings
 
-    def extra_steps(self):
+    def extra_steps(self, name):
         pass
 
 
