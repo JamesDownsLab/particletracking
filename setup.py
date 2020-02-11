@@ -17,7 +17,11 @@ setuptools.setup(
     install_requires=[
         'opencv-python',
         'tables',
-        'pandas'
+        'pandas',
+        'trackpy',
+        'dask',
+        'fast_histogram',
+        'pyclipper',
     ],
     dependency_links=[
         'https://github.com/MikeSmithLabTeam/labvision/tarball/repo/master#egg=package-1.0'
