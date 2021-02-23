@@ -135,7 +135,7 @@ class PropertyCalculator:
                                        boundary=self.data.metadata['boundary'])
                                 .compute(scheduler='processes'))
         else:
-            self.data.df = self.data.df.groupby('frame').progress_apply(voronoi_cells.density, self.data.metadata['boundary'])
+            self.data.df = self.data.df.groupby('frame').progress_apply(lambda x: voronoi_cells.density(x, self.data.metadata['boundary']))
         self.data.save()
 
     def distance(self):
