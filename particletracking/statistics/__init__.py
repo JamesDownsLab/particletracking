@@ -15,7 +15,8 @@ tqdm.pandas()
 
 class PropertyCalculator:
 
-    def __init__(self, datastore):
+    def __init__(self, datastore, dask=False):
+        self.dask = dask
         self.data = datastore
         self.core_name = os.path.splitext(self.data.filename)[0]
 
@@ -60,43 +61,55 @@ class PropertyCalculator:
         Saves results in 'order_r', 'order_i' and 'neighbors' columns
         in the dataframe.
         """
-        dask_data = dd.from_pandas(self.data.df, chunksize=10000)
-        meta = dask_data._meta.copy()
-        meta['order_r'] = np.array([], dtype='float32')
-        meta['order_i'] = np.array([], dtype='float32')
-        meta['neighbors'] = np.array([], dtype='uint8')
-        with ProgressBar():
-            self.data.df = (dask_data.groupby('frame')
-                            .apply(order.order_process, meta=meta)
-                            .compute(scheduler='processes'))
+        if self.dask:
+            dask_data = dd.from_pandas(self.data.df, chunksize=10000)
+            meta = dask_data._meta.copy()
+            meta['order_r'] = np.array([], dtype='float32')
+            meta['order_i'] = np.array([], dtype='float32')
+            meta['neighbors'] = np.array([], dtype='uint8')
+            with ProgressBar():
+                self.data.df = (dask_data.groupby('frame')
+                                .apply(order.order_process, meta=meta)
+                                .compute(scheduler='processes'))
+        else:
+            self.data.df = (self.data.df.groupby('frame').
+                            progress_apply(order.order_process))
         self.data.df['order'] = np.abs(
             self.data.df.order_r + 1j * self.data.df.order_i)
         self.data.save()
 
     def order_nearest_6(self):
-        dask_data = dd.from_pandas(self.data.df, chunksize=10000)
-        meta = dask_data._meta.copy()
-        meta['order_r_nearest_6'] = np.array([], dtype='float32')
-        meta['order_i_nearest_6'] = np.array([], dtype='float32')
-        with ProgressBar():
-            self.data.df = (dask_data.groupby('frame')
-                            .apply(order_6.order_process, meta=meta)
-                            .compute(scheduler='processes'))
+        if self.dask:
+            dask_data = dd.from_pandas(self.data.df, chunksize=10000)
+            meta = dask_data._meta.copy()
+            meta['order_r_nearest_6'] = np.array([], dtype='float32')
+            meta['order_i_nearest_6'] = np.array([], dtype='float32')
+            with ProgressBar():
+                self.data.df = (dask_data.groupby('frame')
+                                .apply(order_6.order_process, meta=meta)
+                                .compute(scheduler='processes'))
+        else:
+            self.data.df = (self.data.df.groupby('frame').
+                            progress_apply(order_6.order_process))
+
         self.data.df['order_nearest_6'] = np.abs(
             self.data.df.order_r_nearest_6 + 1j * self.data.df.order_i_nearest_6)
-        # self.data.save()
+        self.data.save()
 
 
     def order_mean(self):
-        dask_data = dd.from_pandas(self.data.df, chunksize=10000)
-        meta = dask_data._meta.copy()
-        meta['order_r_mean'] = np.array([], dtype='float32')
-        meta['order_i_mean'] = np.array([], dtype='float32')
-        meta['neighbors_mean'] = np.array([], dtype='uint8')
-        with ProgressBar():
-            self.data.df = (dask_data.groupby('frame')
-                            .apply(order.order_process_mean, meta=meta)
-                            .compute(scheduler='processes'))
+        if self.dask:
+            dask_data = dd.from_pandas(self.data.df, chunksize=10000)
+            meta = dask_data._meta.copy()
+            meta['order_r_mean'] = np.array([], dtype='float32')
+            meta['order_i_mean'] = np.array([], dtype='float32')
+            meta['neighbors_mean'] = np.array([], dtype='uint8')
+            with ProgressBar():
+                self.data.df = (dask_data.groupby('frame')
+                                .apply(order.order_process_mean, meta=meta)
+                                .compute(scheduler='processes'))
+        else:
+            self.data.df = self.data.df.groupby('frame').progress_apply(order.order_process_mean)
         self.data.df['order_mean'] = np.abs(
             self.data.df.order_r_mean + 1j * self.data.df.order_i_mean)
         self.data.save()
@@ -109,17 +122,20 @@ class PropertyCalculator:
         Saves result in 'density', 'shape_factor' and 'on_edge' columns
         in the dataframe.
         """
-        dask_data = dd.from_pandas(self.data.df, chunksize=10000)
-        meta = dask_data._meta.copy()
-        meta['density'] = np.array([], dtype='float32')
-        meta['shape_factor'] = np.array([], dtype='float32')
-        meta['on_edge'] = np.array([], dtype='bool')
-        with ProgressBar():
-            self.data.df = (dask_data.groupby('frame')
-                            .apply(voronoi_cells.density,
-                                   meta=meta,
-                                   boundary=self.data.metadata['boundary'])
-                            .compute(scheduler='processes'))
+        if self.dask:
+            dask_data = dd.from_pandas(self.data.df, chunksize=10000)
+            meta = dask_data._meta.copy()
+            meta['density'] = np.array([], dtype='float32')
+            meta['shape_factor'] = np.array([], dtype='float32')
+            meta['on_edge'] = np.array([], dtype='bool')
+            with ProgressBar():
+                self.data.df = (dask_data.groupby('frame')
+                                .apply(voronoi_cells.density,
+                                       meta=meta,
+                                       boundary=self.data.metadata['boundary'])
+                                .compute(scheduler='processes'))
+        else:
+            self.data.df = self.data.df.groupby('frame').progress_apply(voronoi_cells.density, self.data.metadata['boundary'])
         self.data.save()
 
     def distance(self):
