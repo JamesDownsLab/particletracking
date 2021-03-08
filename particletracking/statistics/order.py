@@ -11,6 +11,15 @@ def order_process(features, threshold=2.3):
     features['neighbors'] = neighbors
     return features
 
+def order_process_long(features, threshold=4):
+    points = features[['x', 'y', 'r']].values
+    threshold *= np.mean(points[:, 2])
+    orders, neighbors = order_and_neighbors(points[:, :2], threshold)
+    features['order_r_long'] = np.real(orders).astype('float32')
+    features['order_i_long'] = np.imag(orders).astype('float32')
+    features['neighbors_long'] = neighbors
+    return features
+
 
 def order_process_mean(features, threshold=2.3):
     points = features[['x_mean', 'y_mean', 'r']].values

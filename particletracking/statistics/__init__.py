@@ -78,6 +78,30 @@ class PropertyCalculator:
             self.data.df.order_r + 1j * self.data.df.order_i)
         self.data.save()
 
+    def order_long(self):
+        """
+        Calculates the order parameter and number of neighbours.
+
+        Saves results in 'order_r', 'order_i' and 'neighbors' columns
+        in the dataframe.
+        """
+        if self.dask:
+            dask_data = dd.from_pandas(self.data.df, chunksize=10000)
+            meta = dask_data._meta.copy()
+            meta['order_r'] = np.array([], dtype='float32')
+            meta['order_i'] = np.array([], dtype='float32')
+            meta['neighbors'] = np.array([], dtype='uint8')
+            with ProgressBar():
+                self.data.df = (dask_data.groupby('frame')
+                                .apply(order.order_process, meta=meta)
+                                .compute(scheduler='processes'))
+        else:
+            self.data.df = (self.data.df.groupby('frame').
+                            progress_apply(order.order_process_long))
+        self.data.df['order_long'] = np.abs(
+            self.data.df.order_r + 1j * self.data.df.order_i)
+        self.data.save()
+
     def order_nearest_6(self):
         if self.dask:
             dask_data = dd.from_pandas(self.data.df, chunksize=10000)
