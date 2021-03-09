@@ -93,13 +93,13 @@ class PropertyCalculator:
             meta['neighbors'] = np.array([], dtype='uint8')
             with ProgressBar():
                 self.data.df = (dask_data.groupby('frame')
-                                .apply(order.order_process, meta=meta)
+                                .apply(order.order_process_long, meta=meta)
                                 .compute(scheduler='processes'))
         else:
             self.data.df = (self.data.df.groupby('frame').
                             progress_apply(order.order_process_long))
         self.data.df['order_long'] = np.abs(
-            self.data.df.order_r + 1j * self.data.df.order_i)
+            self.data.df.order_r_long + 1j * self.data.df.order_i_long)
         self.data.save()
 
     def order_nearest_6(self):
